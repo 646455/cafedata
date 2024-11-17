@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAFÉDATA</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: url('fondo-cafe.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .logo {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="email"], input[type="file"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .verification {
+            margin-top: 20px;
+        }
+        .verification img {
+            width: 150px;
+        }
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .header img {
+            width: 50px;
+            border-radius: 50%;
+        }
+        .form-group {
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .summary {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .summary div {
+            width: 48%;
+        }
+        .summary input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .saldo {
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            background-color: #2ecc71;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+        }
+        .retiro {
+            width: 100%;
+            padding: 10px;
+            background-color: #e74c3c;
+            color: white;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="login" class="container">
+        <img src="logo-cafe.png" alt="Logo CAFÉDATA" class="logo">
+        <input type="text" id="nombreFinca" placeholder="Nombre de la finca" required>
+        <input type="text" id="nombreUsuario" placeholder="Nombre del usuario" required>
+        <input type="email" id="email" placeholder="Correo electrónico" required>
+        <input type="file" id="fotoFinca" accept="image/*">
+        <button onclick="iniciarSesion()">Iniciar Sesión</button>
+        <div class="verification">
+            <p>Verifica que no eres un robot:</p>
+            <img src="captcha.png" alt="Captcha">
+        </div>
+    </div>
+    <div id="dashboard" class="container dashboard" style="display:none;">
+        <div class="header">
+            <div><img src="foto_finca_usuario.png" alt="Foto de la finca"><span id="nombreFincaDisplay"></span></div>
+            <span id="nombreUsuarioDisplay"></span>
+        </div>
+        <div class="form-group">
+            <label for="fechaDesde">Fecha desde:</label>
+            <input type="date" id="fechaDesde" required>
+        </div>
+        <div class="form-group">
+            <label for="fechaHasta">Fecha hasta:</label>
+            <input type="date" id="fechaHasta" required>
+        </div>
+        <div class="table-container">
+            <table id="registrosRecoleccion">
+                <thead>
+                    <tr>
+                        <th>Trabajador</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miércoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                        <th>Sábado</th>
+                        <th>Total Semana</th>
+                        <th>Precio/Kg</th>
+                        <th>Total a Pagar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Filas dinámicas aquí -->
+                </tbody>
+            </table>
+        </div>
+        <div class="form-group">
+            <label for="precioCarga">Precio de carga (600kg):</label>
+            <input type="number" id="precioCarga" min="0" step="100">
+        </div>
+        <div class="summary">
+            <div>
+                <label for="totalGanancias">Costos de recolección:</label>
+                <input type="number" id="totalGanancias" readonly>
+            </div>
+            <div>
+                <label for="saldo">Saldo:</label>
+                <input type="number" id="saldo" readonly>
+            </div>
+        </div>
+        <div class="retiro">
+            Retiro: Se han descontado los costos de recolección del saldo.
+        </div>
+        <button onclick="agregarRegistro()">Agregar Registro</button>
+        <button onclick="calcularTotales()">Calcular Totales</button>
+        <button onclick="descargarDatos()">Descargar Datos</button>
+    </div>
+
+    <script>
+        function iniciarSesion() {
+            const nombreFinca = document.getElementById('nombreFinca').value;
+            const nombreUsuario = document.getElementById('nombreUsuario').value;
+            const email = document.getElementById('email').value;
+            const fotoFinca = document.getElementById('fotoFinca').files[0];
+
+            if (nombreFinca && nombreUsuario && email) {
+                document.getElementById('nombreFincaDisplay').innerText = nombreFinca;
+                document.getElementById('nombreUsuarioDisplay').innerText = nombreUsuario;
+
+                if (fotoFinca) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.querySelector('#dashboard .header img').src = e.target.result;
+                    };
+                    reader.readAsDataURL(fotoFinca);
+                }
+
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+            } else {
+                alert('Por favor completa todos los campos.');
+            }
+        }
+
+        function agregarRegistro() {
+            const table = document.getElementById('registrosRecoleccion').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+
+            const trabajadorCell = newRow.insertCell(0);
+            const lunesCell = newRow.insertCell(1);
+            const martesCell = newRow.insertCell(2);
+            const miercolesCell = newRow.insertCell(3);
+            const juevesCell = newRow.insertCell(4);
+            const viernesCell = newRow.insertCell(5);
+            const sabadoCell = newRow.insertCell(6);
+            const totalSemanaCell = newRow.insertCell(7);
+            const precioKgCell = newRow.insertCell(8);
+            const totalPagarCell = newRow.insertCell(9);
+
+            trabajadorCell.innerHTML = `<input type="text" placeholder="Nombre del trabajador">`;
+            lunesCell.innerHTML = `<input type="number" value="0" min="0" step="1">`;
+            martesCell.innerHTML = `<input type="number" value="0" min="0" step="1">`;
+            miercolesCell.innerHTML = `<input type="number" value="0" min="0" step="1">`;
+            juevesCell.innerHTML = `<input type="number" value="0" min="0" step="1">`;
+            viernesCell.innerHTML = `<input type="number" value="0" min="0" step="1">`;
+            sabadoCell.innerHTML = `<input type="number" value="0" min="0" step="1">`;
+            totalSemanaCell.innerHTML = `<input type="number" value="0" min="0" step="1" readonly>`;
+            precioKgCell.innerHTML = `
+                <select>
+                    <option value="500">500</option>
+                    <option value="600">600</option>
+                    <option value="700">700</option>
+                    <option value="800">800</option>
+                    <option value="900">900</option>
+                    <option value="1000">1000</option>
+                    <option value="1100">1100</option>
+                    <option value="1200">1200</option>
+                    <option value="1300">1300</option>
+                    <option value="1400">1400</option>
+                    <option value="1500">1500</option>
+                    <option value="1600">1600</option>
+                    <option value="1700">1700</option>
+                    <option value="1800">1800</option>
+                    <option value="1900">1900</option>
+                    <option value="2000">2000</option>
+                    <option value="2100">2100</option>
+                    <option value="2200">2200</option>
+                    <option value="2300">2300</option>
+                    <option value="2400">2400</option>
+                    <option value="2500">2500</option>
+                </select>
+            `;
+            totalPagarCell.innerHTML = `<input type="number" value="0" min="0" step="1" readonly>`;
+        }
+
+        function calcularTotales() {
+            let totalGanancias = 0;
+            let saldo = 0;
+            const precioCarga = parseFloat(document.getElementById('precioCarga').value) || 0;
+            const registrosTable = document.getElementById('registrosRecoleccion').getElementsByTagName('tbody')[0];
+            const registrosRows = registrosTable.getElementsByTagName('tr');
+
+            for (let i = 0; i < registrosRows.length; i++) {
+                const row = registrosRows[i];
+                const lunes = parseInt(row.cells[1].querySelector('input').value) || 0;
+                const martes = parseInt(row.cells[2].querySelector('input').value) || 0;
+                const miercoles = parseInt(row.cells[3].querySelector('input').value) || 0;
+                const jueves = parseInt(row.cells[4].querySelector('input').value) || 0;
+                const viernes = parseInt(row.cells[5].querySelector('input').value) || 0;
+                const sabado = parseInt(row.cells[6].querySelector('input').value) || 0;
+                const totalSemana = lunes + martes + miercoles + jueves + viernes + sabado;
+                const precioKg = parseFloat(row.cells[8].querySelector('select').value) || 0;
+                const totalPagar = totalSemana * precioKg;
+
+                row.cells[7].querySelector('input').value = totalSemana;
+                row.cells[9].querySelector('input').value = totalPagar;
+
+                totalGanancias += totalPagar;
+            }
+
+            const kilosTotales = totalGanancias / 1000;
+            saldo = (precioCarga * kilosTotales) - totalGanancias;
+
+            document.getElementById('totalGanancias').value = totalGanancias;
+            document.getElementById('saldo').value = saldo;
+        }
+
+        function descargarDatos() {
+            const format = prompt("¿En qué formato deseas descargar los datos? (sqlite/excel)").toLowerCase();
+            if (format === 'sqlite' || format === 'excel') {
+                alert(`Descargando datos en formato ${format}...`);
+                // Aquí iría la lógica para guardar los datos en SQLite o Excel
+            } else {
+                alert('Formato no válido.');
+            }
+        }
+    </script>
+</body>
+</html>
